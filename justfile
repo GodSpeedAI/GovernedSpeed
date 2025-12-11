@@ -1,6 +1,22 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
-pac_cfg := "adr-006.embedded-governance.yaml"
+pac_cfg := "libs/governance/policies/adr-006.embedded-governance.yaml"
+
+# Nx commands
+nx-graph:
+    bunx nx graph
+
+nx-build *ARGS:
+    bunx nx run-many -t build {{ARGS}}
+
+nx-test *ARGS:
+    bunx nx run-many -t test {{ARGS}}
+
+nx-lint *ARGS:
+    bunx nx run-many -t lint {{ARGS}}
+
+nx-affected *ARGS:
+    bunx nx affected {{ARGS}}
 
 ci-check:
     python3 tools/pac_ci.py \

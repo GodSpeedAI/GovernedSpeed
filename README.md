@@ -5,7 +5,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docker Compose](https://img.shields.io/badge/docker--compose-ready-success)](deployments/docker-compose.yml)
 [![Kubernetes](https://img.shields.io/badge/kubernetes-helm--ready-326CE5)](charts/)
-[![Framework: NIST AI RMF](https://img.shields.io/badge/Framework-NIST%20AI%20RMF-red)](policies/adr-006.embedded-governance.yaml)
+[![Framework: NIST AI RMF](https://img.shields.io/badge/Framework-NIST%20AI%20RMF-red)](libs/governance/policies/adr-006.embedded-governance.yaml)
+[![Nx Monorepo](https://img.shields.io/badge/Nx-Monorepo-143055)](https://nx.dev)
 
 **A production-ready system proving governance and velocity aren't trade-offs—they're synergies.**
 
@@ -32,7 +33,7 @@ Built to showcase expertise in **LLMOps**, **GenAI program leadership**, and **r
 ✅ **Evidence collection** built into the pipeline (audit trails generate automatically)
 ✅ **Real-time observability** of governance metrics (Prometheus + Grafana dashboards)
 
-**The result:** AI teams ship faster *because* governance catches issues early, not late.
+**The result:** AI teams ship faster _because_ governance catches issues early, not late.
 
 ---
 
@@ -87,13 +88,13 @@ Built to showcase expertise in **LLMOps**, **GenAI program leadership**, and **r
 
 ### Core Components
 
-| Component | Purpose | Technology |
-|-----------|---------|------------|
-| **Policy Gateway** | Runtime sidecar enforcing Policy-as-Code rules | FastAPI, sidecar pattern |
+| Component                   | Purpose                                                   | Technology                          |
+| --------------------------- | --------------------------------------------------------- | ----------------------------------- |
+| **Policy Gateway**          | Runtime sidecar enforcing Policy-as-Code rules            | FastAPI, sidecar pattern            |
 | **Risk & Evidence Service** | Collects evaluation artifacts, exposes governance metrics | FastAPI, Prometheus, SHA256 hashing |
-| **ADR-006 Config** | Single source of truth for thresholds and policy rules | YAML/JSON, mounted as ConfigMap |
-| **Observability Stack** | Real-time monitoring of quality, fairness, safety, drift | Prometheus, Grafana, Loki |
-| **Pre-Commit Gate** | Local governance validation before push | Python CLI tool |
+| **ADR-006 Config**          | Single source of truth for thresholds and policy rules    | YAML/JSON, mounted as ConfigMap     |
+| **Observability Stack**     | Real-time monitoring of quality, fairness, safety, drift  | Prometheus, Grafana, Loki           |
+| **Pre-Commit Gate**         | Local governance validation before push                   | Python CLI tool                     |
 
 **Deployment Model:** Policy Gateway runs as a sidecar container alongside vLLM inference, intercepting requests/responses for policy enforcement without modifying model serving code.
 
@@ -161,8 +162,7 @@ Configuration:
 
 - `PAC_UPSTREAM_URL` — base URL of your LLM service (defaults to `http://localhost:8000`). The HTTP adapter forwards requests to `${PAC_UPSTREAM_URL}/completion` by default.
 
-Provider selection & streaming
-------------------------------
+## Provider selection & streaming
 
 You can select the LLM adapter used by the Policy Gateway at runtime via the
 `PAC_LLM_PROVIDER` environment variable. Supported values:
@@ -183,8 +183,7 @@ export PAC_UPSTREAM_URL=http://localhost:8000
 export PAC_LLM_PROVIDER=litellm
 ```
 
-Streaming endpoint (SSE)
-------------------------
+## Streaming endpoint (SSE)
 
 The gateway exposes a Server-Sent-Events endpoint for streaming completions:
 
@@ -208,24 +207,24 @@ API with a ReadableStream reader. Example:
 ```javascript
 // POST and read streaming response using fetch + ReadableStream
 async function streamCompletion() {
-  const resp = await fetch('/proxy/completion/stream', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Hi' }),
+  const resp = await fetch("/proxy/completion/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: "Hi" }),
   });
 
-  if (!resp.body) throw new Error('No streaming body on response');
+  if (!resp.body) throw new Error("No streaming body on response");
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     const chunk = decoder.decode(value, { stream: true });
-    console.log('chunk:', chunk);
+    console.log("chunk:", chunk);
   }
 }
 
-streamCompletion().catch((err) => console.error('stream error', err));
+streamCompletion().catch((err) => console.error("stream error", err));
 ```
 
 If you specifically want an EventSource-style API and are willing to add a
@@ -242,7 +241,7 @@ Testing:
 ```bash
 # 1. Create ADR-006 ConfigMap
 kubectl create configmap adr-006-config \
-  --from-file=adr-006.embedded-governance.yaml=./policies/adr-006.embedded-governance.yaml \
+  --from-file=adr-006.embedded-governance.yaml=./libs/governance/policies/adr-006.embedded-governance.yaml \
   -n default
 
 # 2. Deploy via Helm
@@ -339,15 +338,15 @@ POST /filter/prompt
 
 ## 📚 Documentation
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| [Quick Start Guide](docs/IAGPM_GenAI_Handbook/Quick_Start_Guide.md) | Everyone | 10-minute walkthrough |
-| [AI Agent Instructions](.github/copilot-instructions.md) | AI Assistants | Architecture patterns, workflows |
-| [Technical Reference](docs/IAGPM_GenAI_Handbook/Reference.md) | Engineers | API specs, configuration details |
-| [LLMOps Runbook](docs/IAGPM_GenAI_Handbook/Technical/llmops_reference_runbook.md) | MLOps teams | SLOs, monitoring, incident response |
-| [Policy-as-Code Starter](docs/IAGPM_GenAI_Handbook/Technical/policy_as_code_starter.md) | Governance leads | Rule syntax, evaluation matrix |
-| [Project State & Roadmap](docs/Reference/PROJECT_STATE.md) | Contributors | TODOs, expert guidance needed |
-| [Testing Guide](tests/TESTING_GUIDE.md) | Developers | Unit/integration/e2e test patterns |
+| Document                                                                                | Audience         | Purpose                             |
+| --------------------------------------------------------------------------------------- | ---------------- | ----------------------------------- |
+| [Quick Start Guide](docs/IAGPM_GenAI_Handbook/Quick_Start_Guide.md)                     | Everyone         | 10-minute walkthrough               |
+| [AI Agent Instructions](.github/copilot-instructions.md)                                | AI Assistants    | Architecture patterns, workflows    |
+| [Technical Reference](docs/IAGPM_GenAI_Handbook/Reference.md)                           | Engineers        | API specs, configuration details    |
+| [LLMOps Runbook](docs/IAGPM_GenAI_Handbook/Technical/llmops_reference_runbook.md)       | MLOps teams      | SLOs, monitoring, incident response |
+| [Policy-as-Code Starter](docs/IAGPM_GenAI_Handbook/Technical/policy_as_code_starter.md) | Governance leads | Rule syntax, evaluation matrix      |
+| [Project State & Roadmap](docs/Reference/PROJECT_STATE.md)                              | Contributors     | TODOs, expert guidance needed       |
+| [Testing Guide](tests/TESTING_GUIDE.md)                                                 | Developers       | Unit/integration/e2e test patterns  |
 
 **Full handbook:** [`docs/IAGPM_GenAI_Handbook/`](docs/IAGPM_GenAI_Handbook/)
 
@@ -492,7 +491,7 @@ This repository demonstrates: **AI governance doesn't have to slow delivery when
 **Samuel Prime**
 [GitHub](https://github.com/SPRIME01) | [LinkedIn](https://linkedin.com/in/samuelmprime)
 
-*Demonstrating that the future of AI is governed speed—where safety and velocity reinforce each other.*
+_Demonstrating that the future of AI is governed speed—where safety and velocity reinforce each other._
 
 ---
 
@@ -509,6 +508,16 @@ just deploy-vllm-with-gateway    # Deploy Policy Gateway with vLLM
 
 **See [`justfile`](justfile) for full command reference.**
 
+### Nx Commands
+
+```bash
+just nx-graph                    # Visualize project dependency graph
+just nx-build                    # Build all projects
+just nx-test                     # Run all tests
+just nx-lint                     # Lint all projects
+just nx-affected                 # Run tasks on affected projects only
+```
+
 ---
 
 ## 📦 What's Included
@@ -516,24 +525,24 @@ just deploy-vllm-with-gateway    # Deploy Policy Gateway with vLLM
 This repository provides a complete production-ready kit:
 
 - **Architecture:** Hexagonal (ports/adapters) Policy Gateway + Evidence Service
-- **Specs:** OpenAPI 3.0 contracts for both services ([`specs/`](specs/))
 - **Deployment:** Docker Compose (local) + Helm charts (K8s) ([`deployments/`](deployments/), [`charts/`](charts/))
 - **Observability:** Prometheus metrics + pre-built Grafana dashboards ([`observability/`](observability/))
-- **Policy Configuration:** ADR-006 YAML with thresholds/rules ([`policies/`](policies/))
+- **Policy Configuration:** ADR-006 YAML with thresholds/rules ([`libs/governance/policies/`](libs/governance/policies/))
+- **API Specs:** OpenAPI 3.0 contracts for all services ([`libs/shared/specs/`](libs/shared/specs/))
 - **Documentation:** Diátaxis-structured handbook ([`docs/IAGPM_GenAI_Handbook/`](docs/IAGPM_GenAI_Handbook/))
 - **Tools:** Pre-commit gate (`pac_ci.py`), evidence viewer (`res_viewer/`) ([`tools/`](tools/))
 
 **Core APIs:**
 
-| Service | Endpoint | Purpose |
-|---------|----------|---------|
-| Policy Gateway | `POST /filter/prompt` | Runtime prompt filtering |
-| Policy Gateway | `POST /filter/output` | Runtime output filtering |
-| Policy Gateway | `POST /ci/check` | Pre-merge threshold validation |
-| RES | `POST /evidence` | Submit audit artifacts |
-| RES | `GET /risk/snapshot` | Current compliance state |
-| RES | `GET /metrics` | Prometheus metrics |
+| Service        | Endpoint              | Purpose                        |
+| -------------- | --------------------- | ------------------------------ |
+| Policy Gateway | `POST /filter/prompt` | Runtime prompt filtering       |
+| Policy Gateway | `POST /filter/output` | Runtime output filtering       |
+| Policy Gateway | `POST /ci/check`      | Pre-merge threshold validation |
+| RES            | `POST /evidence`      | Submit audit artifacts         |
+| RES            | `GET /risk/snapshot`  | Current compliance state       |
+| RES            | `GET /metrics`        | Prometheus metrics             |
 
 ---
 
-*This platform is a **governance-embedded operating system** for GenAI—policy checks and evidence capture are first-class pipeline citizens, not afterthoughts.*
+_This platform is a **governance-embedded operating system** for GenAI—policy checks and evidence capture are first-class pipeline citizens, not afterthoughts._

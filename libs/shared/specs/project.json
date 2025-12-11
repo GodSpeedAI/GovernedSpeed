@@ -1,0 +1,16 @@
+{
+  "name": "shared-specs",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/shared/specs",
+  "tags": ["scope:shared", "type:lib", "domain:api"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo 'OpenAPI specs lint placeholder - integrate spectral or similar'",
+        "cwd": "libs/shared/specs"
+      }
+    }
+  }
+}

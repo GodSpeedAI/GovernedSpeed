@@ -1,0 +1,24 @@
+{
+  "name": "governed-speed",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Governed Speed - Policy-driven governance platform",
+  "scripts": {
+    "nx": "nx",
+    "graph": "nx graph",
+    "build": "nx run-many -t build",
+    "test": "nx run-many -t test",
+    "lint": "nx run-many -t lint",
+    "affected": "nx affected"
+  },
+  "devDependencies": {
+    "@nx/js": "^22.2.0",
+    "@types/bun": "latest",
+    "nx": "^22.2.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "bun@1.3.4"
+}

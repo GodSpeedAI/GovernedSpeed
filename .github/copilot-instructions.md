@@ -13,56 +13,33 @@
 **Structure**: `services/policy-gateway/src/policy_gateway/`
 
 ```
-ports/          → Interfaces (ConfigurationPort Protocol)
-application/    → Service layer (PolicyDecisionService)
-domain/         → Models (DecisionResult, CiCheckInput, etc.)
-infrastructure/ → Adapters (ConfigFileAdapter)
+ports/          → Interfaces (PolicyEnginePort, ConfigurationPort)
+application/    → Service layer (PolicyEnforcementService)
+domain/         → Models (DecisionEvent, PolicyContext)
+infrastructure/ → Adapters (SeaRuntimeAdapter, FileConfigAdapter)
 interface/      → HTTP schemas (Pydantic models)
 ```
 
-**Dependency Flow**: `app.py` (FastAPI) → `PolicyDecisionService` → `ConfigurationPort` ← `ConfigFileAdapter`
+**Dependency Flow**: `app.py` → `PolicyEnforcementService` → `PolicyEnginePort` ← `SeaRuntimeAdapter`
 
-**Key Principle**: Domain logic in `application/services.py` knows nothing about FastAPI, file I/O, or YAML parsing. All I/O goes through ports.
-
-### Domain-to-HTTP Response Conversion Pattern
-
-**Current fragile pattern** (being refactored):
-
-```python
-# ❌ AVOID: Relies on __dict__ matching exactly
-return DecisionResponse(**decision.__dict__)
-```
-
-**Correct pattern** (explicit field mapping):
-
-```python
-# ✅ Use explicit conversion
-return DecisionResponse(
-    allowed=decision.allowed,
-    action=decision.action,
-    reasons=decision.reasons,
-    metadata=decision.metadata or {}
-)
-```
-
-**Why**: Domain models (`DecisionResult`) may diverge from HTTP schemas (`DecisionResponse`). Explicit mapping prevents runtime errors.
+**Key Principle**: The `application/` layer orchestrates policy enforcement but delegates the actual logic to the **SEA-DSL Runtime** (via adapter).
 
 ### Configuration Single Source of Truth
 
-**File**: `policies/adr-006.embedded-governance.yaml`
-**Mounted as**: Kubernetes ConfigMap → `/config/adr-006.embedded-governance.yaml` in containers
+**Source**: `policies/*.sea` (SEA-DSL Corpus)
+**Runtime**: Compiled to WASM and loaded by the Policy Gateway.
 
 **Critical sections**:
 
-- `thresholds.quality.pass_at_5.target: 0.82`
-- `thresholds.fairness.subgroup_delta.target_max: 0.05`
-- `policy_as_code.rules[]` → Enforced by `PolicyDecisionService.decide_prompt()`
+- `Policy "FairnessThresholds"`
+- `Metric "JailbreakScore"`
+- `Role "DataScientist"`
 
 **Update workflow**:
 
-1. Edit `policies/adr-006.embedded-governance.yaml`
-2. Recreate ConfigMap: `kubectl delete configmap adr-006-config && kubectl create configmap...`
-3. Restart pods: `kubectl rollout restart deployment/policy-gateway`
+1. Edit `.sea` files in `policies/`.
+2. Commit and push (GitOps).
+3. CI Pipeline compiles WASM and updates the Gateway deployment.
 
 ## Essential Development Workflows
 
@@ -82,15 +59,9 @@ docker compose -f deployments/docker-compose.yml up --build
 
 ```bash
 just ci-check  # Validates quality/fairness/safety/drift metrics
-
-# Requires artifacts/ with:
-# - eval_quality.json    (pass_at_5)
-# - eval_fairness.json   (subgroup_delta)
-# - eval_safety.json     (harmful_rate)
-# - eval_drift.json      (psi)
 ```
 
-**Tool**: `tools/pac_ci.py` reads thresholds from `adr-006.embedded-governance.yaml`, exits 1 if violated.
+**Tool**: `tools/pac_ci.py` invokes the `sea-runtime` to check artifacts against active `Policy` definitions.
 
 ### Testing (Currently Manual—Automation Needed)
 
@@ -111,16 +82,7 @@ curl -X POST http://localhost:8081/filter/prompt \
 
 ## Project-Specific Conventions
 
-### Config Loading (Both Services)
-
-```python
-def load_cfg():
-    if CFG_PATH.endswith((".yml", ".yaml")):
-        return yaml.safe_load(open(CFG_PATH))
-    return json.load(open(CFG_PATH))
-```
-
-**Always support YAML and JSON.**
+**Support SEA-DSL (`.sea`) as the primary configuration format, with JSON/YAML as fallback or intermediate representations.**
 
 ### Environment Variables
 
@@ -194,15 +156,15 @@ See `tests/TESTING_GUIDE.md` for full patterns and `tests/fixtures/` for mock da
 
 ## Key Reference Files
 
-- **`policies/adr-006.embedded-governance.yaml`**: Single source of truth for thresholds/rules
-- **`docs/IAGPM_GenAI_Handbook/Technical/policy_as_code_starter.md`**: Policy rule syntax
-- **`specs/openapi-policy-gateway.yaml`**: Gateway API contract
-- **`specs/openapi-risk-evidence-service.yaml`**: RES API contract
-- **`docs/PROJECT_STATE.md`**: TODO tracker, gaps, expert guidance needed
+- **`policies/*.sea`**: Single source of truth for all Governance Policies and Roles.
+- **`docs/handbook/`**: Generated Operational Guide (from SEA-DSL).
+- **`specs/openapi-policy-gateway.yaml`**: Gateway API contract.
+- **`specs/openapi-risk-evidence-service.yaml`**: RES API contract.
+- **`docs/PROJECT_STATE.md`**: TODO tracker and implementation status.
 
 ## Common Pitfalls
 
-1. **ConfigMap updates**: Editing `adr-006.embedded-governance.yaml` requires `kubectl delete configmap adr-006-config && kubectl create...` + pod restart
+1. **Policy Updates**: Changing a `.sea` file requires recompilation/deployment of the WASM bundle, not just a ConfigMap edit.
 2. **Port confusion**: Gateway=8081, vLLM=8000, RES=8080
 3. **Missing artifacts/**: `just ci-check` expects eval JSONs in `artifacts/` directory
 4. **Devbox shell**: Always run `devbox shell` first for correct Python/tool versions
@@ -216,4 +178,4 @@ All changes must align with:
 - **EU AI Act** (risk tier = "Limited" default)
 - **CPMAI+E** phases I-VI
 
-See `policies/adr-006.embedded-governance.yaml` → `frameworks` section for mappings.
+See `policies/frameworks.sea` for explicit mapping of `Policy` objects to framework controls.

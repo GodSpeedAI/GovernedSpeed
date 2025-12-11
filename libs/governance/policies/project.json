@@ -1,0 +1,16 @@
+{
+  "name": "governance-policies",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/governance/policies",
+  "tags": ["scope:governance", "type:lib", "domain:policy"],
+  "targets": {
+    "validate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo 'Policy validation placeholder - integrate OPA or similar'",
+        "cwd": "libs/governance/policies"
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/devbox.schema.json",
   "packages": [
+    "bun@latest",
     "just@latest",
     "python@3.11",
     "kubectl@latest",
