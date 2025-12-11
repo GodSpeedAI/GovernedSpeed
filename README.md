@@ -256,11 +256,38 @@ curl -X POST http://localhost:8081/filter/prompt \
 
 ## License
 
-This project is licensed under the **GNU General Public License v3.0 (GPLv3)**. You may freely use, modify, and redistribute this software under the terms of the GPLv3. See the [LICENSE](LICENSE) file for the full text.
+**Governed Speed is dual-licensed:**
 
-### Commercial Licensing
+### Open Source (GPLv3)
 
-For organizations that wish to use this software under different terms—such as incorporating it into proprietary products without GPLv3 obligations—a commercial license is available. Contact **sprime01@gmail.com** for details.
+Free for use under the [GNU General Public License v3.0](LICENSE).
+
+**GPLv3 lets you:**
+
+- ✅ Use internally (no obligations)
+- ✅ Modify for internal use (no sharing required)
+- ✅ Offer as SaaS (network access ≠ distribution)
+- ✅ Contribute to open-source ecosystem
+
+**GPLv3 requires sharing source if you:**
+
+- Distribute the software to third parties
+- Embed it in products you ship to customers
+
+### Commercial License
+
+For organizations that need to **distribute** Governed Speed in proprietary products.
+
+**Choose Commercial if:**
+
+- You're embedding it in products you sell or distribute
+- You need OEM/white-label rights
+- Your legal team requires warranty, indemnification, or support SLAs
+- Corporate policy prohibits GPLv3 dependencies (even for internal use)
+
+**See [LICENSE-COMMERCIAL.md](LICENSE-COMMERCIAL.md) for full terms.**
+
+**Contact:** sprime01@gmail.com
 
 ---
 
