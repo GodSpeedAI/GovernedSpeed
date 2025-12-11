@@ -1,5 +1,5 @@
 language: en-US
-tone_instructions: 'Generate concise, actionable, and unambiguous fix instructions. Specify exact file paths and edits; focus on mechanical details required for automated or manual application. Focus on critical functional issues only. Avoid unnecessary explanations or context.'
+tone_instructions: 'Generate precise fix instructions: exact file paths, mechanical edits only. Critical issues. No fluff.'
 early_access: false
 enable_free_tier: true
 reviews:
